@@ -13,7 +13,7 @@ public class Group {
         this.members = new ArrayList<>();
     }
 
-    public String getName() { return groupName; }
+    public String getGroupName() { return groupName; }
     public String getDescription() { return description; }
     public List<Student> getMembers() { return members; }
 
