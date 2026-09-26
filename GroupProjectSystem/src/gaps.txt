@@ -1,0 +1,5 @@
+====== GAPS AFTER PHASE 5=====
+1. delete student not available in gui
+2. delete group N/A
+3. edit student N/A
+4. Liststudent N/A

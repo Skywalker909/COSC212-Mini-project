@@ -1,76 +1,154 @@
 package view;
 
-import controller.SystemController;
+import controller.ProgressController;
+import model.DataManager;
 import model.Group;
-import model.Responsibility;
+import model.ProgressReport;
 import model.Student;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Tab 3: Reports.
+ *
+ * Pure read-only view: pick a student or a group, click "View Report",
+ * and it prints the ProgressReport that ProgressController builds for
+ * that student/group. This panel does no math itself - it just calls
+ * the controller and formats what comes back.
+ */
 public class ReportsPanel extends JPanel {
-    private SystemController controller;
-    private JTextArea reportTextArea;
 
-    public ReportsPanel(SystemController controller) {
-        this.controller = controller;
-        setLayout(new BorderLayout(5, 5));
-        setBorder(BorderFactory.createTitledBorder("Progress & Summary Reports"));
+    private DataManager dataManager;
+    private ProgressController progressController;
 
-        reportTextArea = new JTextArea();
-        reportTextArea.setEditable(false);
-        reportTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        add(new JScrollPane(reportTextArea), BorderLayout.CENTER);
+    private JComboBox<Student> studentCombo;
+    private JComboBox<Group> groupCombo;
 
-        JPanel btnPanel = new JPanel(new FlowLayout());
-        JButton groupReportBtn = new JButton("Group Summary");
-        JButton memberReportBtn = new JButton("Member Contributions");
+    private JTextArea memberReportArea;
+    private JTextArea groupReportArea;
 
-        groupReportBtn.addActionListener(e -> generateGroupReport());
-        memberReportBtn.addActionListener(e -> generateMemberReport());
+    public ReportsPanel(DataManager dataManager, ProgressController progressController) {
+        this.dataManager = dataManager;
+        this.progressController = progressController;
 
-        btnPanel.add(groupReportBtn);
-        btnPanel.add(memberReportBtn);
-        add(btnPanel, BorderLayout.SOUTH);
+        setLayout(new GridLayout(1, 2, 10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        add(buildMemberReportPanel());
+        add(buildGroupReportPanel());
+
+        refreshDropdowns();
     }
 
-    public void generateGroupReport() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("==================================================\n");
-        sb.append("               GROUP SUMMARY REPORT               \n");
-        sb.append("==================================================\n\n");
+    private JPanel buildMemberReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createTitledBorder("Member Progress"));
 
-        for (Group g : controller.getDataStore().getGroups()) {
-            sb.append("Group Name: ").append(g.getName()).append("\n");
-            sb.append("Description: ").append(g.getDescription()).append("\n");
-            sb.append("Members: ").append(g.getMembers().size()).append("\n");
+        studentCombo = new JComboBox<>();
+        studentCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                            boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Student) {
+                    setText(((Student) value).getName());
+                }
+                return this;
+            }
+        });
 
-            double progress = controller.calculateGroupProgress(g);
-            sb.append(String.format("Overall Progress: %.1f%%\n", progress));
-            sb.append("--------------------------------------------------\n");
-        }
+        JButton viewButton = new JButton("View Report");
+        viewButton.addActionListener(e -> showMemberReport());
 
-        reportTextArea.setText(sb.toString());
+        JPanel topPanel = new JPanel(new BorderLayout(5, 5));
+        topPanel.add(studentCombo, BorderLayout.CENTER);
+        topPanel.add(viewButton, BorderLayout.EAST);
+
+        memberReportArea = new JTextArea();
+        memberReportArea.setEditable(false);
+        memberReportArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(memberReportArea), BorderLayout.CENTER);
+        return panel;
     }
 
-    public void generateMemberReport() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("==================================================\n");
-        sb.append("            MEMBER CONTRIBUTION REPORT            \n");
-        sb.append("==================================================\n\n");
+    private JPanel buildGroupReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createTitledBorder("Group Progress"));
 
-        for (Student s : controller.getDataStore().getStudents()) {
-            sb.append("Member: ").append(s.getName()).append(" (ID: ").append(s.getId()).append(")\n");
-            Group g = controller.getDataStore().getGroupForStudent(s);
-            sb.append("Group: ").append(g != null ? g.getName() : "Unassigned").append("\n");
+        groupCombo = new JComboBox<>();
 
-            double score = controller.calculateMemberContribution(s);
-            sb.append(String.format("Contribution Score: %.1f%%\n", score));
-            sb.append("--------------------------------------------------\n");
+        JButton viewButton = new JButton("View Report");
+        viewButton.addActionListener(e -> showGroupReport());
+
+        JPanel topPanel = new JPanel(new BorderLayout(5, 5));
+        topPanel.add(groupCombo, BorderLayout.CENTER);
+        topPanel.add(viewButton, BorderLayout.EAST);
+
+        groupReportArea = new JTextArea();
+        groupReportArea.setEditable(false);
+        groupReportArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(groupReportArea), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void showMemberReport() {
+        Student student = (Student) studentCombo.getSelectedItem();
+        if (student == null) {
+            JOptionPane.showMessageDialog(this, "Select a student first.",
+                    "Nothing Selected", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
-        reportTextArea.setText(sb.toString());
+        ProgressReport report = progressController.getMemberProgressReport(student);
+        memberReportArea.setText(
+                "Student: " + student.getName() + "\n\n" +
+                "Total Responsibilities: " + report.getTotalResponsibilities() + "\n" +
+                "Completed:              " + report.getCompletedResponsibilities() + "\n" +
+                "Pending:                " + report.getPendingResponsibilities() + "\n" +
+                "Completion:             " + String.format("%.1f", report.getCompletionPercentage()) + "%"
+        );
+    }
+
+    private void showGroupReport() {
+        Group group = (Group) groupCombo.getSelectedItem();
+        if (group == null) {
+            JOptionPane.showMessageDialog(this, "Select a group first.",
+                    "Nothing Selected", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        ProgressReport report = progressController.getGroupProgressReport(group);
+        groupReportArea.setText(
+                "Group: " + group.getGroupName() + "\n\n" +
+                "Total Responsibilities: " + report.getTotalResponsibilities() + "\n" +
+                "Completed:              " + report.getCompletedResponsibilities() + "\n" +
+                "Pending:                " + report.getPendingResponsibilities() + "\n" +
+                "Completion:             " + String.format("%.1f", report.getCompletionPercentage()) + "%"
+        );
+    }
+
+    public void refreshDropdowns() {
+        Student previousStudent = (Student) studentCombo.getSelectedItem();
+        studentCombo.removeAllItems();
+        for (Student s : dataManager.getStudents()) {
+            studentCombo.addItem(s);
+        }
+        if (previousStudent != null) {
+            studentCombo.setSelectedItem(previousStudent);
+        }
+
+        Group previousGroup = (Group) groupCombo.getSelectedItem();
+        groupCombo.removeAllItems();
+        for (Group g : dataManager.getGroups()) {
+            groupCombo.addItem(g);
+        }
+        if (previousGroup != null) {
+            groupCombo.setSelectedItem(previousGroup);
+        }
     }
 }

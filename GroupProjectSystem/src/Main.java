@@ -1,65 +1,24 @@
-package view;
+import model.DataManager;
+import controller.ProgressController;
+import view.MainFrame;
 
-import controller.SystemController;
+import javax.swing.SwingUtilities;
 
-import javax.swing.*;
-import java.awt.*;
+/**
+ * Entry point for the GUI application (Phase 5).
+ *
+ * TestProgress.java still exists as your console-based test harness
+ * for the model/controller layer - this class just launches the Swing
+ * front end on top of that same layer.
+ */
+public class Main {
+    public static void main(String[] args) {
+        DataManager dataManager = new DataManager();
+        ProgressController progressController = new ProgressController(dataManager);
 
-public class MainFrame extends JFrame {
-    private SystemController controller;
-    private StudentsGroupsPanel studentsGroupsPanel;
-    private TasksPanel tasksPanel;
-    private ReportsPanel reportsPanel;
-
-    public MainFrame(SystemController controller) {
-        this.controller = controller;
-
-        setTitle("Group Project Management System - COSC 212");
-        setSize(950, 650);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-
-        setJMenuBar(createMenuBar());
-
-        JTabbedPane tabbedPane = new JTabbedPane();
-
-        studentsGroupsPanel = new StudentsGroupsPanel(controller);
-        tasksPanel = new TasksPanel(controller);
-        reportsPanel = new ReportsPanel(controller);
-
-        tabbedPane.addTab("Students & Groups", studentsGroupsPanel);
-        tabbedPane.addTab("Tasks & Assignment", tasksPanel);
-        tabbedPane.addTab("Reports", reportsPanel);
-
-        tabbedPane.addChangeListener(e -> refreshAllTabs());
-
-        add(tabbedPane, BorderLayout.CENTER);
-    }
-
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem exitItem = new JMenuItem("Exit");
-        exitItem.addActionListener(e -> System.exit(0));
-        fileMenu.add(exitItem);
-
-        JMenu helpMenu = new JMenu("Help");
-        JMenuItem aboutItem = new JMenuItem("About");
-        aboutItem.addActionListener(e -> 
-            JOptionPane.showMessageDialog(this, 
-                "Group Project Management System\nCOSC 212 Assignment\nBuilt with Java Swing/AWT", 
-                "About", JOptionPane.INFORMATION_MESSAGE));
-        helpMenu.add(aboutItem);
-
-        menuBar.add(fileMenu);
-        menuBar.add(helpMenu);
-        return menuBar;
-    }
-
-    public void refreshAllTabs() {
-        studentsGroupsPanel.refresh();
-        tasksPanel.refresh();
-        reportsPanel.generateGroupReport();
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame(dataManager, progressController);
+            frame.setVisible(true);
+        });
     }
 }
