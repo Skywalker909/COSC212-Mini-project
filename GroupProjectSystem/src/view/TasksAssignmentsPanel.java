@@ -3,6 +3,7 @@ package view;
 import model.DataManager;
 import model.Responsibility;
 import model.Student;
+import model.Group;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -28,6 +29,7 @@ public class TasksAssignmentsPanel extends JPanel {
     private JTextField descriptionField;
     private JTextField deadlineField;
     private JComboBox<Student> assignedStudentCombo;
+	private JComboBox<Group> groupCombo;
     private JComboBox<Responsibility.Status> statusCombo;
 
     public TasksAssignmentsPanel(DataManager dataManager) {
@@ -58,13 +60,16 @@ public class TasksAssignmentsPanel extends JPanel {
         JPanel outer = new JPanel(new BorderLayout(5, 5));
         outer.setBorder(BorderFactory.createTitledBorder("New / Update Task"));
 
-        JPanel formPanel = new JPanel(new GridLayout(2, 5, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(2, 6, 5, 5));
 
         titleField = new JTextField();
         descriptionField = new JTextField();
         deadlineField = new JTextField("yyyy-mm-dd");
         assignedStudentCombo = new JComboBox<>();
         statusCombo = new JComboBox<>(Responsibility.Status.values());
+		groupCombo = new JComboBox<>();
+		
+		groupCombo.addActionListener(e -> refreshAssignedStudentCombo());
 
         // Student's toString() isn't overridden, so give the combo box
         // its own renderer instead of showing "model.Student@1a2b3c".
@@ -84,12 +89,16 @@ public class TasksAssignmentsPanel extends JPanel {
         formPanel.add(new JLabel("Title:"));
         formPanel.add(new JLabel("Description:"));
         formPanel.add(new JLabel("Deadline:"));
+		formPanel.add(new JLabel("Group"));
         formPanel.add(new JLabel("Assigned To:"));
         formPanel.add(new JLabel("Status:"));
+		
+		
 
         formPanel.add(titleField);
         formPanel.add(descriptionField);
         formPanel.add(deadlineField);
+		formPanel.add(groupCombo);
         formPanel.add(assignedStudentCombo);
         formPanel.add(statusCombo);
 
@@ -101,9 +110,16 @@ public class TasksAssignmentsPanel extends JPanel {
 
         JButton updateStatusButton = new JButton("Update Status of Selected Task");
         updateStatusButton.addActionListener(e -> updateSelectedStatus());
+		
+		JButton deleteButton = new JButton("Delete Task");
+        deleteButton.addActionListener(e -> deleteSelectedResponsibility());
+		JButton editButton = new JButton("Edit Task");
+        editButton.addActionListener(e -> editSelectedResponsibility());
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateStatusButton);
+		buttonPanel.add(deleteButton);
+		buttonPanel.add(editButton);
 
         outer.add(buttonPanel, BorderLayout.SOUTH);
         return outer;
@@ -113,14 +129,35 @@ public class TasksAssignmentsPanel extends JPanel {
         String title = titleField.getText().trim();
         String description = descriptionField.getText().trim();
         String deadlineText = deadlineField.getText().trim();
-        Student assigned = (Student) assignedStudentCombo.getSelectedItem();
+		Group selectedGroup = (Group) groupCombo.getSelectedItem();
+		Student assignedStudent = (Student) assignedStudentCombo.getSelectedItem();
 
-        if (title.isEmpty() || assigned == null) {
+		if (selectedGroup == null) {
+			JOptionPane.showMessageDialog(
+				this,
+				"Select a group first.",
+				"Invalid Input",
+				JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		if (assignedStudent == null) {
+			JOptionPane.showMessageDialog(
+				this,
+				"Select a group member.",
+				"Invalid Input",
+				JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+        if (title.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Title and an assigned student are required. Add a student on the first tab if the dropdown is empty.",
                     "Missing Information", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+				return;
+			}
 
         LocalDate deadline;
         try {
@@ -131,7 +168,7 @@ public class TasksAssignmentsPanel extends JPanel {
             return;
         }
 
-        dataManager.addResponsibility(new Responsibility(title, description, deadline, assigned));
+        dataManager.addResponsibility(new Responsibility(title, description, deadline, assignedStudent));
 
         titleField.setText("");
         descriptionField.setText("");
@@ -154,6 +191,113 @@ public class TasksAssignmentsPanel extends JPanel {
 
         refreshTaskTable();
     }
+	private void deleteSelectedResponsibility() {
+		int selectedRow = taskTable.getSelectedRow();
+
+		if (selectedRow == -1) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a task to delete.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		int choice = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this task?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION
+		);
+
+		if (choice == JOptionPane.YES_OPTION) {
+			dataManager.getResponsibilities().remove(selectedRow);
+			refreshTaskTable();
+		}
+	}
+	private void editSelectedResponsibility() {
+		int selectedRow = taskTable.getSelectedRow();
+
+		if (selectedRow == -1) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a task to edit.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		String newTitle = titleField.getText().trim();
+		String newDescription = descriptionField.getText().trim();
+		String deadlineText = deadlineField.getText().trim();
+
+		if (newTitle.isEmpty() || deadlineText.isEmpty()) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Title and deadline are required.",
+                "Invalid Input",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		LocalDate newDeadline;
+
+		try {
+			newDeadline = LocalDate.parse(deadlineText);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Enter the deadline in YYYY-MM-DD format.",
+                "Invalid Date",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		Responsibility responsibility =
+            dataManager.getResponsibilities().get(selectedRow);
+
+		Student assignedStudent =
+            (Student) assignedStudentCombo.getSelectedItem();
+
+		Responsibility.Status newStatus =
+            (Responsibility.Status) statusCombo.getSelectedItem();
+
+		responsibility.setTitle(newTitle);
+		responsibility.setDescription(newDescription);
+		responsibility.setDeadline(newDeadline);
+		responsibility.setAssignedMember(assignedStudent);
+		responsibility.setStatus(newStatus);
+
+		refreshTaskTable();
+	
+		titleField.setText("");
+		descriptionField.setText("");
+		deadlineField.setText("");
+	}
+	private void refreshAssignedStudentCombo() {
+		assignedStudentCombo.removeAllItems();
+
+		Group selectedGroup = (Group) groupCombo.getSelectedItem();
+
+		if (selectedGroup != null) {
+			for (Student student : selectedGroup.getMembers()) {
+            assignedStudentCombo.addItem(student);
+			}
+		}
+	}
+	private void refreshGroupCombo() {
+		groupCombo.removeAllItems();
+
+		for (Group group : dataManager.getGroups()) {
+			groupCombo.addItem(group);
+		}
+
+		refreshAssignedStudentCombo();
+	}
 
     public void refreshTaskTable() {
         taskTableModel.setRowCount(0);
@@ -168,19 +312,8 @@ public class TasksAssignmentsPanel extends JPanel {
         }
     }
 
-    public void refreshStudentCombo() {
-        Student previouslySelected = (Student) assignedStudentCombo.getSelectedItem();
-        assignedStudentCombo.removeAllItems();
-        for (Student s : dataManager.getStudents()) {
-            assignedStudentCombo.addItem(s);
-        }
-        if (previouslySelected != null) {
-            assignedStudentCombo.setSelectedItem(previouslySelected);
-        }
-    }
-
     public void refreshAll() {
         refreshTaskTable();
-        refreshStudentCombo();
+        refreshGroupCombo();
     }
 }

@@ -80,14 +80,17 @@ public class StudentsGroupsPanel extends JPanel {
         formPanel.add(new JLabel("Email:"));
         formPanel.add(studentEmailField);
 
-        JPanel buttonPanel = new JPanel (new GridLayout(1, 2, 5 ,5));
-		JButton addStudentButton = new JButton("Add Student");
-        addStudentButton.addActionListener(e -> addStudent());
-		JButton deleteStudentButton =new JButton("Delete Student");
-		deleteStudentButton.addActionListener(e -> deleteStudent());
+        JPanel buttonPanel = new JPanel (new GridLayout(1, 3, 5 ,5));
+		JButton addButton = new JButton("Add Student");
+        addButton.addActionListener(e -> addStudent());
+		JButton editButton = new JButton("Edit Student");
+		editButton.addActionListener(e -> editStudent());
+		JButton deleteButton =new JButton("Delete Student");
+		deleteButton.addActionListener(e -> deleteStudent());
 		
-		buttonPanel.add(addStudentButton);
-		buttonPanel.add(deleteStudentButton);
+		buttonPanel.add(addButton);
+		buttonPanel.add(editButton);
+		buttonPanel.add(deleteButton);
 		
         formPanel.add(new JLabel());
 		formPanel.add(buttonPanel);
@@ -134,28 +137,68 @@ public class StudentsGroupsPanel extends JPanel {
         formPanel.add(new JLabel("Description:"));
         formPanel.add(groupDescriptionField);
 		
-		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+		JPanel groupButtonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
 
         JButton addGroupButton = new JButton("Add Group");
         addGroupButton.addActionListener(e -> addGroup());
+		JButton editGroupButton = new JButton("Edit Group");
+        editGroupButton.addActionListener(e -> editGroup());
 		JButton deleteGroupButton = new JButton ("Delete Group");
 		deleteGroupButton.addActionListener( e -> deleteGroup());
 		
-		buttonPanel.add(addGroupButton);
-		buttonPanel.add(deleteGroupButton);
+		groupButtonPanel.add(addGroupButton);
+		groupButtonPanel.add(editGroupButton);
+		groupButtonPanel.add(deleteGroupButton);
 		
         formPanel.add(new JLabel());
-        formPanel.add(buttonPanel);
+        formPanel.add(groupButtonPanel);
 		
 
-        JButton addMemberButton = new JButton("Add Selected Student to Selected Group");
+        JPanel memberButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+		JButton addMemberButton = new JButton("Add Selected Student to Selected Group");
         addMemberButton.addActionListener(e -> addMemberToGroup());
+		JButton removeMemberButton = new JButton("Remove Member");
+		removeMemberButton.addActionListener(e -> removeMemberFromGroup());
+		
+		memberButtonPanel.add(addMemberButton);
+		memberButtonPanel.add(removeMemberButton);
+		
         formPanel.add(new JLabel());
-        formPanel.add(addMemberButton);
+        formPanel.add(memberButtonPanel);
 
         panel.add(formPanel, BorderLayout.SOUTH);
         return panel;
     }
+	private void removeMemberFromGroup() {
+		Group selectedGroup = groupList.getSelectedValue();
+		int selectedMemberIndex = memberList.getSelectedIndex();
+
+		if (selectedGroup == null) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a group first.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		if (selectedMemberIndex == -1) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a member to remove.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		Student studentToRemove = selectedGroup.getMembers().get(selectedMemberIndex);
+
+		selectedGroup.removeMember(studentToRemove);
+
+		refreshMemberList();
+	}
 
     private void addStudent() {
         String id = studentIdField.getText().trim();
@@ -213,6 +256,49 @@ public class StudentsGroupsPanel extends JPanel {
 			}
 		}
 	}
+	private void editStudent() {
+		int selectedRow = studentTable.getSelectedRow();
+
+		if (selectedRow == -1) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a student to edit.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		String oldStudentId = (String) studentTableModel.getValueAt(selectedRow, 0);
+
+		String newStudentId = studentIdField.getText().trim();
+		String newName = studentNameField.getText().trim();
+		String newEmail = studentEmailField.getText().trim();
+
+		if (newStudentId.isEmpty() || newName.isEmpty()) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Student ID and name are required.",
+                "Invalid Input",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		Student student = findStudentById(oldStudentId);
+
+		if (student != null) {
+			student.setId(newStudentId);
+			student.setName(newName);
+			student.setEmail(newEmail);
+
+			refreshStudentTable();
+
+			studentIdField.setText("");
+			studentNameField.setText("");
+			studentEmailField.setText("");
+		}
+	}
 
     private void addGroup() {
         String name = groupNameField.getText().trim();
@@ -267,7 +353,40 @@ public class StudentsGroupsPanel extends JPanel {
 			}
 		}
 	}
+	private void editGroup() {
+		Group selectedGroup = groupList.getSelectedValue();
 
+		if (selectedGroup == null) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a group to edit.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		String newGroupName = groupNameField.getText().trim();
+		String newDescription = groupDescriptionField.getText().trim();
+
+		if (newGroupName.isEmpty()) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Group name is required.",
+                "Invalid Input",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		selectedGroup.setGroupName(newGroupName);
+		selectedGroup.setDescription(newDescription);
+	
+		refreshGroupList();
+		groupNameField.setText("");
+		groupDescriptionField.setText("");
+	}
+	
     private void addMemberToGroup() {
         int studentRow = studentTable.getSelectedRow();
         Group selectedGroup = groupList.getSelectedValue();
