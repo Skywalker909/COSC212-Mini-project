@@ -27,16 +27,18 @@ public class ReportsPanel extends JPanel {
 
     private JTextArea memberReportArea;
     private JTextArea groupReportArea;
+	private JTextArea taskReportArea;
 
     public ReportsPanel(DataManager dataManager, ProgressController progressController) {
         this.dataManager = dataManager;
         this.progressController = progressController;
 
-        setLayout(new GridLayout(1, 2, 10, 10));
+        setLayout(new GridLayout(1, 3, 10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         add(buildMemberReportPanel());
         add(buildGroupReportPanel());
+		add(buildTaskPanel());
 
         refreshDropdowns();
     }
@@ -95,42 +97,131 @@ public class ReportsPanel extends JPanel {
         panel.add(new JScrollPane(groupReportArea), BorderLayout.CENTER);
         return panel;
     }
+	private void showMemberReport() {
+		Student student = (Student) studentCombo.getSelectedItem();
 
-    private void showMemberReport() {
-        Student student = (Student) studentCombo.getSelectedItem();
-        if (student == null) {
-            JOptionPane.showMessageDialog(this, "Select a student first.",
-                    "Nothing Selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+		if (student == null) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a student first.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
 
-        ProgressReport report = progressController.getMemberProgressReport(student);
-        memberReportArea.setText(
-                "Student: " + student.getName() + "\n\n" +
-                "Total Responsibilities: " + report.getTotalResponsibilities() + "\n" +
-                "Completed:              " + report.getCompletedResponsibilities() + "\n" +
-                "Pending:                " + report.getPendingResponsibilities() + "\n" +
-                "Completion:             " + String.format("%.1f", report.getCompletionPercentage()) + "%"
-        );
-    }
+		ProgressReport report =
+            progressController.getMemberProgressReport(student);
+
+		StringBuilder text = new StringBuilder();
+
+		text.append("Student: ")
+            .append(student.getName())
+            .append("\n\n");
+
+		text.append("Assigned Tasks:\n");
+
+		boolean hasTasks = false;
+
+		for (model.Responsibility responsibility :
+            dataManager.getResponsibilities()) {
+
+			if (responsibility.getAssignedMember() == student) {
+
+				hasTasks = true;
+
+				text.append("- ")
+                    .append(responsibility.getTitle())
+                    .append(" : ")
+                    .append(responsibility.getStatus())
+                    .append("\n");
+			}
+		}
+
+		if (!hasTasks) {
+			text.append("No assigned tasks.\n");
+		}
+
+		text.append("\n");
+		text.append("Total Responsibilities: ")
+            .append(report.getTotalResponsibilities())
+            .append("\n");
+
+		text.append("Completed:              ")
+            .append(report.getCompletedResponsibilities())
+            .append("\n");
+
+		text.append("Pending:                ")
+            .append(report.getPendingResponsibilities())
+            .append("\n");
+
+		text.append("Contribution:           ")
+            .append(String.format("%.1f",
+                    report.getCompletionPercentage()))
+            .append("%");
+
+		memberReportArea.setText(text.toString());
+	}
+
+    
 
     private void showGroupReport() {
-        Group group = (Group) groupCombo.getSelectedItem();
-        if (group == null) {
-            JOptionPane.showMessageDialog(this, "Select a group first.",
-                    "Nothing Selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+		Group group = (Group) groupCombo.getSelectedItem();
 
-        ProgressReport report = progressController.getGroupProgressReport(group);
-        groupReportArea.setText(
-                "Group: " + group.getGroupName() + "\n\n" +
-                "Total Responsibilities: " + report.getTotalResponsibilities() + "\n" +
-                "Completed:              " + report.getCompletedResponsibilities() + "\n" +
-                "Pending:                " + report.getPendingResponsibilities() + "\n" +
-                "Completion:             " + String.format("%.1f", report.getCompletionPercentage()) + "%"
-        );
-    }
+		if (group == null) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Select a group first.",
+                "Nothing Selected",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		ProgressReport report =
+            progressController.getGroupProgressReport(group);
+
+		StringBuilder text = new StringBuilder();
+
+		text.append("Group: ")
+            .append(group.getGroupName())
+            .append("\n\n");
+
+		text.append("Members:\n");
+
+		if (group.getMembers().isEmpty()) {
+			text.append("No members.\n");
+		} else {
+			for (Student student : group.getMembers()) {
+				text.append("- ")
+                    .append(student.getName())
+                    .append(" (")
+                    .append(student.getStudentId())
+                    .append(")\n");
+			}
+		}
+
+		text.append("\n");
+
+		text.append("Total Responsibilities: ")
+            .append(report.getTotalResponsibilities())
+            .append("\n");
+
+		text.append("Completed:              ")
+            .append(report.getCompletedResponsibilities())
+            .append("\n");
+
+		text.append("Pending:                ")
+            .append(report.getPendingResponsibilities())
+            .append("\n");
+
+		text.append("Overall Progress:       ")
+            .append(String.format("%.1f",
+                    report.getCompletionPercentage()))
+            .append("%");
+
+		groupReportArea.setText(text.toString());
+	}
 
     public void refreshDropdowns() {
         Student previousStudent = (Student) studentCombo.getSelectedItem();
@@ -151,4 +242,65 @@ public class ReportsPanel extends JPanel {
             groupCombo.setSelectedItem(previousGroup);
         }
     }
+	private JPanel buildTaskPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBorder(BorderFactory.createTitledBorder("Task Status Report"));
+
+		taskReportArea = new JTextArea();
+		taskReportArea.setEditable(false);
+
+		JButton viewButton = new JButton("View Task Report");
+
+		viewButton.addActionListener(e -> {
+			StringBuilder report = new StringBuilder();
+
+			for (model.Responsibility responsibility : dataManager.getResponsibilities()) {
+
+				model.Student student = responsibility.getAssignedMember();
+
+				String studentName = "Unassigned";
+				String groupName = "No Group";
+
+				if (student != null) {
+					studentName = student.getName();
+
+					for (model.Group group : dataManager.getGroups()) {
+						if (group.getMembers().contains(student)) {
+							groupName = group.getGroupName();
+							break;
+						}
+					}
+				}
+
+				report.append("Task: ")
+                    .append(responsibility.getTitle())
+                    .append("\n");
+
+				report.append("Group: ")
+                    .append(groupName)
+                    .append("\n");
+
+				report.append("Assigned To: ")
+                    .append(studentName)
+                    .append("\n");
+
+				report.append("Status: ")
+                    .append(responsibility.getStatus())
+                    .append("\n");
+
+				report.append("-------------------------\n");
+			}
+
+			if (report.length() == 0) {
+				taskReportArea.setText("No tasks available.");
+			} else {
+				taskReportArea.setText(report.toString());
+			}
+		});
+
+		panel.add(viewButton, BorderLayout.NORTH);
+		panel.add(new JScrollPane(taskReportArea), BorderLayout.CENTER);
+
+		return panel;
+	}
 }

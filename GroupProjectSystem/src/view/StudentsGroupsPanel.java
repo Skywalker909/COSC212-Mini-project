@@ -28,15 +28,11 @@ public class StudentsGroupsPanel extends JPanel {
     // Students side
     private DefaultTableModel studentTableModel;
     private JTable studentTable;
-    private JTextField studentIdField;
-    private JTextField studentNameField;
-    private JTextField studentEmailField;
+  
 
     // Groups side
     private DefaultListModel<Group> groupListModel;
     private JList<Group> groupList;
-    private JTextField groupNameField;
-    private JTextField groupDescriptionField;
     private DefaultListModel<String> memberListModel;
     private JList<String> memberList;
 
@@ -55,120 +51,140 @@ public class StudentsGroupsPanel extends JPanel {
         refreshAll();
     }
 
-    private JPanel buildStudentsPanel() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Students"));
+   private JPanel buildStudentsPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBorder(BorderFactory.createTitledBorder("Students"));
 
-        studentTableModel = new DefaultTableModel(new String[]{"ID", "Name", "Email"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        studentTable = new JTable(studentTableModel);
-        panel.add(new JScrollPane(studentTable), BorderLayout.CENTER);
+		studentTableModel = new DefaultTableModel(
+            new String[]{"ID", "Name", "Email"}, 0) {
 
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        studentIdField = new JTextField();
-        studentNameField = new JTextField();
-        studentEmailField = new JTextField();
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 
-        formPanel.add(new JLabel("Student ID:"));
-        formPanel.add(studentIdField);
-        formPanel.add(new JLabel("Name:"));
-        formPanel.add(studentNameField);
-        formPanel.add(new JLabel("Email:"));
-        formPanel.add(studentEmailField);
+		studentTable = new JTable(studentTableModel);
+		panel.add(new JScrollPane(studentTable), BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel (new GridLayout(1, 3, 5 ,5));
+		JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+
 		JButton addButton = new JButton("Add Student");
-        addButton.addActionListener(e -> addStudent());
+		addButton.addActionListener(e -> addStudent());
+
 		JButton editButton = new JButton("Edit Student");
 		editButton.addActionListener(e -> editStudent());
-		JButton deleteButton =new JButton("Delete Student");
+
+		JButton deleteButton = new JButton("Delete Student");
 		deleteButton.addActionListener(e -> deleteStudent());
-		
+
 		buttonPanel.add(addButton);
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
-		
-        formPanel.add(new JLabel());
-		formPanel.add(buttonPanel);
-		
 
-        panel.add(formPanel, BorderLayout.SOUTH);
-        return panel;
-    }
+		panel.add(buttonPanel, BorderLayout.SOUTH);
 
-    private JPanel buildGroupsPanel() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Groups"));
+		return panel;
+	}
 
-        groupListModel = new DefaultListModel<>();
-        groupList = new JList<>(groupListModel);
-        groupList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                refreshMemberList();
-            }
-        });
+   private JPanel buildGroupsPanel() {
+		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		panel.setBorder(BorderFactory.createTitledBorder("Groups"));
 
-        memberListModel = new DefaultListModel<>();
-        memberList = new JList<>(memberListModel);
+		groupListModel = new DefaultListModel<>();
+		groupList = new JList<>(groupListModel);
 
-        JPanel listsPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-        JPanel groupSide = new JPanel(new BorderLayout());
-        groupSide.add(new JLabel("Groups:"), BorderLayout.NORTH);
-        groupSide.add(new JScrollPane(groupList), BorderLayout.CENTER);
-        listsPanel.add(groupSide);
+		groupList.addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
+				refreshMemberList();
+			}
+		});
 
-        JPanel memberSide = new JPanel(new BorderLayout());
-        memberSide.add(new JLabel("Members of selected group:"), BorderLayout.NORTH);
-        memberSide.add(new JScrollPane(memberList), BorderLayout.CENTER);
-        listsPanel.add(memberSide);
+		memberListModel = new DefaultListModel<>();
+		memberList = new JList<>(memberListModel);
 
-        panel.add(listsPanel, BorderLayout.CENTER);
+		JPanel listsPanel = new JPanel(new GridLayout(1, 2, 5, 5));
 
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        groupNameField = new JTextField();
-        groupDescriptionField = new JTextField();
+		JPanel groupSide = new JPanel(new BorderLayout());
+		groupSide.add(new JLabel("Groups:"), BorderLayout.NORTH);
+		groupSide.add(new JScrollPane(groupList), BorderLayout.CENTER);
 
-        formPanel.add(new JLabel("Group Name:"));
-        formPanel.add(groupNameField);
-        formPanel.add(new JLabel("Description:"));
-        formPanel.add(groupDescriptionField);
-		
-		JPanel groupButtonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+		listsPanel.add(groupSide);
 
-        JButton addGroupButton = new JButton("Add Group");
-        addGroupButton.addActionListener(e -> addGroup());
-		JButton editGroupButton = new JButton("Edit Group");
-        editGroupButton.addActionListener(e -> editGroup());
-		JButton deleteGroupButton = new JButton ("Delete Group");
-		deleteGroupButton.addActionListener( e -> deleteGroup());
-		
+		JPanel memberSide = new JPanel(new BorderLayout());
+		memberSide.add(
+            new JLabel("Members of selected group:"),
+            BorderLayout.NORTH
+		);
+		memberSide.add(
+            new JScrollPane(memberList),
+            BorderLayout.CENTER
+		);
+
+		listsPanel.add(memberSide);
+
+		panel.add(listsPanel, BorderLayout.CENTER);
+
+    // Group buttons
+		JPanel groupButtonPanel =
+            new JPanel(new GridLayout(1, 3, 5, 5));
+
+		JButton addGroupButton =
+            new JButton("Add Group");
+
+		addGroupButton.addActionListener(
+            e -> addGroup()
+		);
+
+		JButton editGroupButton =
+            new JButton("Edit Group");
+
+		editGroupButton.addActionListener(
+            e -> editGroup()
+		);
+
+		JButton deleteGroupButton =
+            new JButton("Delete Group");
+
+		deleteGroupButton.addActionListener(
+            e -> deleteGroup()
+		);
+
 		groupButtonPanel.add(addGroupButton);
 		groupButtonPanel.add(editGroupButton);
 		groupButtonPanel.add(deleteGroupButton);
-		
-        formPanel.add(new JLabel());
-        formPanel.add(groupButtonPanel);
-		
+	
+    // Member buttons
+		JPanel memberButtonPanel =
+            new JPanel(new GridLayout(1, 2, 5, 5));
 
-        JPanel memberButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-		JButton addMemberButton = new JButton("Add Selected Student to Selected Group");
-        addMemberButton.addActionListener(e -> addMemberToGroup());
-		JButton removeMemberButton = new JButton("Remove Member");
-		removeMemberButton.addActionListener(e -> removeMemberFromGroup());
-		
+		JButton addMemberButton =
+            new JButton("Add Selected Student to Selected Group");
+
+		addMemberButton.addActionListener(
+            e -> addMemberToGroup()
+		);
+
+		JButton removeMemberButton =
+            new JButton("Remove Member");
+
+		removeMemberButton.addActionListener(
+            e -> removeMemberFromGroup()
+		);
+
 		memberButtonPanel.add(addMemberButton);
 		memberButtonPanel.add(removeMemberButton);
-		
-        formPanel.add(new JLabel());
-        formPanel.add(memberButtonPanel);
 
-        panel.add(formPanel, BorderLayout.SOUTH);
-        return panel;
-    }
+		JPanel buttonPanel =
+            new JPanel(new GridLayout(2, 1, 5, 5));
+
+		buttonPanel.add(groupButtonPanel);
+		buttonPanel.add(memberButtonPanel);
+
+		panel.add(buttonPanel, BorderLayout.SOUTH);
+
+		return panel;
+	}
 	private void removeMemberFromGroup() {
 		Group selectedGroup = groupList.getSelectedValue();
 		int selectedMemberIndex = memberList.getSelectedIndex();
@@ -201,24 +217,52 @@ public class StudentsGroupsPanel extends JPanel {
 	}
 
     private void addStudent() {
-        String id = studentIdField.getText().trim();
-        String name = studentNameField.getText().trim();
-        String email = studentEmailField.getText().trim();
 
-        if (id.isEmpty() || name.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Student ID and Name are required.",
-                    "Missing Information", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+		JTextField idField = new JTextField();
+		JTextField nameField = new JTextField();
+		JTextField emailField = new JTextField();
 
-        dataManager.addStudent(new Student(id, name, email));
+		JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
 
-        studentIdField.setText("");
-        studentNameField.setText("");
-        studentEmailField.setText("");
+		panel.add(new JLabel("Student ID:"));
+		panel.add(idField);
 
-        refreshStudentTable();
-    }
+		panel.add(new JLabel("Name:"));
+		panel.add(nameField);
+
+		panel.add(new JLabel("Email:"));
+		panel.add(emailField);
+
+		int result = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Add Student",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+		);
+
+		if (result != JOptionPane.OK_OPTION) {
+			return;
+		}
+
+		String id = idField.getText().trim();
+		String name = nameField.getText().trim();
+		String email = emailField.getText().trim();
+
+		if (id.isEmpty() || name.isEmpty()) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Student ID and Name are required.",
+                "Missing Information",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		dataManager.addStudent(new Student(id, name, email));
+
+		refreshStudentTable();
+	}
 	private void deleteStudent() {
 		int selectedRow = studentTable.getSelectedRow();
 
@@ -269,11 +313,45 @@ public class StudentsGroupsPanel extends JPanel {
 			return;
 		}
 
-		String oldStudentId = (String) studentTableModel.getValueAt(selectedRow, 0);
+		String oldStudentId =
+            (String) studentTableModel.getValueAt(selectedRow, 0);
 
-		String newStudentId = studentIdField.getText().trim();
-		String newName = studentNameField.getText().trim();
-		String newEmail = studentEmailField.getText().trim();
+		Student student = findStudentById(oldStudentId);
+
+		if (student == null) {
+			return;
+		}
+
+		JTextField idField = new JTextField(student.getStudentId());
+		JTextField nameField = new JTextField(student.getName());
+		JTextField emailField = new JTextField(student.getEmail());
+
+		JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
+
+		panel.add(new JLabel("Student ID:"));
+		panel.add(idField);
+
+		panel.add(new JLabel("Name:"));
+		panel.add(nameField);
+
+		panel.add(new JLabel("Email:"));
+		panel.add(emailField);
+
+		int result = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Edit Student",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+		);
+
+		if (result != JOptionPane.OK_OPTION) {
+			return;
+		}
+
+		String newStudentId = idField.getText().trim();
+		String newName = nameField.getText().trim();
+		String newEmail = emailField.getText().trim();
 
 		if (newStudentId.isEmpty() || newName.isEmpty()) {
 			JOptionPane.showMessageDialog(
@@ -285,38 +363,55 @@ public class StudentsGroupsPanel extends JPanel {
 			return;
 		}
 
-		Student student = findStudentById(oldStudentId);
+		student.setId(newStudentId);
+		student.setName(newName);
+		student.setEmail(newEmail);
 
-		if (student != null) {
-			student.setId(newStudentId);
-			student.setName(newName);
-			student.setEmail(newEmail);
-
-			refreshStudentTable();
-
-			studentIdField.setText("");
-			studentNameField.setText("");
-			studentEmailField.setText("");
-		}
+		refreshStudentTable();
 	}
 
-    private void addGroup() {
-        String name = groupNameField.getText().trim();
-        String description = groupDescriptionField.getText().trim();
+   private void addGroup() {
 
-        if (name.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Group name is required.",
-                    "Missing Information", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+		JTextField nameField = new JTextField();
+		JTextField descriptionField = new JTextField();
 
-        dataManager.addGroup(new Group(name, description));
+		JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
 
-        groupNameField.setText("");
-        groupDescriptionField.setText("");
+		panel.add(new JLabel("Group Name:"));
+		panel.add(nameField);
 
-        refreshGroupList();
-    }
+		panel.add(new JLabel("Description:"));
+		panel.add(descriptionField);
+
+		int result = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Add Group",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+		);
+
+		if (result != JOptionPane.OK_OPTION) {
+			return;
+		}
+
+		String name = nameField.getText().trim();
+		String description = descriptionField.getText().trim();
+
+		if (name.isEmpty()) {
+			JOptionPane.showMessageDialog(
+                this,
+                "Group name is required.",
+                "Missing Information",
+                JOptionPane.WARNING_MESSAGE
+			);
+			return;
+		}
+
+		dataManager.addGroup(new Group(name, description));
+
+		refreshGroupList();
+	}
 	private void deleteGroup() {
 		Group selectedGroup = groupList.getSelectedValue();
 
@@ -366,8 +461,34 @@ public class StudentsGroupsPanel extends JPanel {
 			return;
 		}
 
-		String newGroupName = groupNameField.getText().trim();
-		String newDescription = groupDescriptionField.getText().trim();
+		JTextField nameField =
+            new JTextField(selectedGroup.getGroupName());
+
+		JTextField descriptionField =
+            new JTextField(selectedGroup.getDescription());
+
+		JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+
+		panel.add(new JLabel("Group Name:"));
+		panel.add(nameField);
+
+		panel.add(new JLabel("Description:"));
+		panel.add(descriptionField);
+
+		int result = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Edit Group",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+		);
+
+		if (result != JOptionPane.OK_OPTION) {
+			return;
+		}
+
+		String newGroupName = nameField.getText().trim();
+		String newDescription = descriptionField.getText().trim();
 
 		if (newGroupName.isEmpty()) {
 			JOptionPane.showMessageDialog(
@@ -381,10 +502,8 @@ public class StudentsGroupsPanel extends JPanel {
 
 		selectedGroup.setGroupName(newGroupName);
 		selectedGroup.setDescription(newDescription);
-	
+
 		refreshGroupList();
-		groupNameField.setText("");
-		groupDescriptionField.setText("");
 	}
 	
     private void addMemberToGroup() {
