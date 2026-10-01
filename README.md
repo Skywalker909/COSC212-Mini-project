@@ -1,188 +1,96 @@
-# COSC212-Mini-project
-GROUP PROJECT MANAGEMENT SYSTEM
-
-COSC 212 MINI PROJECT
-
-1. PROJECT TITLE
-
 Group Project Management System
 
-2. PROJECT DESCRIPTION
+A Java desktop application for managing students, groups, tasks, assignments, progress, and reports.
 
-The Group Project Management System is a Java desktop application developed using Java Swing/AWT.
+1. Compile and Run
 
-The system is designed to help a lecturer manage students, organize students into groups, assign responsibilities to group members, track task progress, and generate reports on group and individual contributions.
+Open Command Prompt inside the project folder.
 
-The application stores its data in memory using Java collections. No database is required.
+Compile the project:
 
-3. PROJECT FEATURES
-
-The system provides the following features:
-
-* Add, edit, delete, and view students.
-* Create, edit, delete, and view groups.
-* Add and remove students from groups.
-* Create and manage responsibilities/tasks.
-* Assign responsibilities to group members.
-* Set task descriptions, deadlines, and statuses.
-* Update the status of responsibilities.
-* Track individual member progress.
-* Calculate group progress.
-* Generate group progress reports.
-* Display member contribution information.
-* Display task status information.
-* Navigate between Students & Groups, Tasks & Assignment, and Reports sections.
-
-4. TECHNOLOGIES USED
-
-* Java
-* Java Swing/AWT
-* Java Collections
-* Object-Oriented Programming (OOP)
-* MVC (Model-View-Controller) architecture
-
-5. PROJECT STRUCTURE
-
-The source code is organized into model, controller, and view packages.
-
-GroupProjectSystem/
-│
-├── src/
-│   ├── controller/
-│   │   ├── GroupController.java
-│   │   ├── ProgressController.java
-│   │   ├── ResponsibilityController.java
-│   │   └── StudentController.java
-│   │
-│   ├── model/
-│   │   ├── DataManager.java
-│   │   ├── Group.java
-│   │   ├── ProgressReport.java
-│   │   ├── Responsibility.java
-│   │   └── Student.java
-│   │
-│   ├── view/
-│   │   ├── MainFrame.java
-│   │   ├── ReportsPanel.java
-│   │   ├── StudentsGroupsPanel.java
-│   │   └── TasksAssignmentsPanel.java
-│   │
-│   ├── pics/
-│   │   └── Project screenshots
-│   │
-│   ├── Main.java
-│   ├── TestProgress.java
-│   └── gaps.txt
-│
-└── README.txt
-
-6. MODEL PACKAGE
-
-The model package contains the main data classes used by the application.
-
-* Student.java
-    Stores student information such as student ID, name, and email.
-* Group.java
-    Represents a project group and its members.
-* Responsibility.java
-    Represents a task/responsibility, including its title, description, deadline, status, and assigned member.
-* DataManager.java
-    Manages the in-memory collections used by the application.
-* ProgressReport.java
-    Represents progress and reporting information.
-
-7. CONTROLLER PACKAGE
-
-The controller package contains classes that manage application operations and connect the user interface with the model.
-
-* StudentController.java
-    Handles student-related operations.
-* GroupController.java
-    Handles group-related operations.
-* ResponsibilityController.java
-    Handles responsibility/task operations.
-* ProgressController.java
-    Handles progress calculations for students and groups.
-
-8. VIEW PACKAGE
-
-The view package contains the graphical user interface of the application.
-
-* MainFrame.java
-    Main application window and navigation.
-* StudentsGroupsPanel.java
-    Provides the interface for managing students and groups.
-* TasksAssignmentsPanel.java
-    Provides the interface for managing responsibilities and task assignments.
-* ReportsPanel.java
-    Displays progress and report information.
-
-9. DATA STORAGE
-
-The application uses in-memory storage.
-
-Students, groups, responsibilities, and progress information are stored using Java collections while the program is running.
-
-No database or external file storage is required.
-
-Data is cleared when the application is closed.
-
-10. REQUIREMENTS
-
-The following software is required to compile and run the project:
-
-* Java Development Kit (JDK)
-* Java compiler (javac)
-* Java Runtime Environment
-
-11. COMPILATION
-
-Open Command Prompt or a terminal in the project root folder.
-
-For example:
-
-C:\Users\Moshood Kilaso\Documents\GitHub\COSC212-Mini-project\GroupProjectSystem>
-
-Create an output folder:
-
+if exist out rmdir /s /q out
 mkdir out
+javac -d out src\model\*.java src\controller\*.java src\view\*.java
 
-Compile the project using:
-
-javac -d out src\Main.java src\model*.java src\controller*.java src\view*.java
-
-12. RUNNING THE APPLICATION
-
-After successful compilation, run the main class using:
+If there are no errors, run:
 
 java -cp out Main
 
-13. PROJECT SCREENSHOTS
+2. Students & Groups
 
-Screenshots of the application are stored in:
+Add Student
 
-src\pics\
+Click Add Student, enter the student’s ID, name, and email, then click OK.
 
-The screenshots show different sections and features of the Group Project Management System.
+Edit/Delete Student
 
-14. TESTING
+Select a student and click Edit Student or Delete Student.
 
-The project includes TestProgress.java for testing progress-related functionality.
+Add Group
 
-The application was also tested by compiling the source files and running the graphical interface.
+Click Add Group, enter the group name and description, then click OK.
 
-15. PROJECT TEAM
+Edit/Delete Group
 
-Group Number: 12
+Select a group and click Edit Group or Delete Group.
 
-Course: COSC 212
+Manage Members
 
-Institution: ABU Distance Learning Centre
+Select a student and group, then click Add Selected Student to Selected Group.
 
-16. NOTES
+To remove a member, select the group member and click Remove Member.
 
-This project was developed as an academic mini project.
+3. Tasks & Assignments
 
-The application is intended to demonstrate the use of Java, object-oriented programming, MVC structure, Java Swing/AWT, event handling, collections, and basic project management functionality.
+Add Task
 
-Because the application uses in-memory storage, information entered during one session is not permanently saved after the application is closed.
+Click Add Task, enter:
+
+* Title
+* Description
+* Deadline (yyyy-mm-dd)
+* Group
+* Group member to assign the task to
+
+Then click OK.
+
+Edit/Delete Task
+
+Select a task and click Edit Task or Delete Task.
+
+Update Status
+
+Select a task and click Update Status of Selected Task.
+
+Available statuses:
+
+* NOT_STARTED
+* IN_PROGRESS
+* COMPLETED
+* BLOCKED
+
+Filter Tasks
+
+Use Filter by Group or Filter by Member, then click Apply Filter.
+
+Click Clear Filter to show all tasks again.
+
+4. Reports
+
+Open the Reports tab to view:
+
+* Member Progress
+* Group Progress
+* Task Status Report
+
+5. Recommended Order
+
+For a new user:
+
+Students → Groups → Members → Tasks → Status → Reports
+
+6. Important
+
+The application stores data in memory only.
+
+Closing the application will remove all data created during that session.
